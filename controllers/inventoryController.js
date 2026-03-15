@@ -95,14 +95,15 @@ const getInventoryController = async (req, res) => {
   try {
     const inventory = await inventoryModel
       .find({
-        organisation: req.body.userId,
+        organisation: req.userId,
       })
       .populate("donar")
       .populate("hospital")
       .sort({ createdAt: -1 });
+
     return res.status(200).send({
       success: true,
-      messaage: "get all records successfully",
+      message: "get all records successfully",
       inventory,
     });
   } catch (error) {
@@ -165,24 +166,28 @@ const getRecentInventoryController = async (req, res) => {
 // GET DONAR REOCRDS
 const getDonarsController = async (req, res) => {
   try {
-    const organisation = req.body.userId;
-    //find donars
+    const organisation = req.userId;
+
+    // find donor IDs from inventory
     const donorId = await inventoryModel.distinct("donar", {
       organisation,
     });
-    // console.log(donorId);
-    const donars = await userModel.find({ _id: { $in: donorId } });
+
+    // find donor users
+    const donars = await userModel.find({
+      _id: { $in: donorId },
+    });
 
     return res.status(200).send({
       success: true,
-      message: "Donar Record Fetched Successfully",
+      message: "Donor Record Fetched Successfully",
       donars,
     });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
       success: false,
-      message: "Error in Donar records",
+      message: "Error in Donor records",
       error,
     });
   }
@@ -190,15 +195,18 @@ const getDonarsController = async (req, res) => {
 
 const getHospitalController = async (req, res) => {
   try {
-    const organisation = req.body.userId;
-    //GET HOSPITAL ID
+    const organisation = req.userId;
+
+    // get hospital IDs from inventory
     const hospitalId = await inventoryModel.distinct("hospital", {
       organisation,
     });
-    //FIND HOSPITAL
+
+    // find hospital users
     const hospitals = await userModel.find({
       _id: { $in: hospitalId },
     });
+
     return res.status(200).send({
       success: true,
       message: "Hospitals Data Fetched Successfully",
